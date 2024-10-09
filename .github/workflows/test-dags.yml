@@ -29,12 +29,7 @@ jobs:
   test-dags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+      - uses: actions/checkout@v4
 
       - name: Clone MWAA Local Runner
         run: git clone https://github.com/aws/aws-mwaa-local-runner.git
@@ -58,15 +53,15 @@ jobs:
           cd aws-mwaa-local-runner
           ./mwaa-local-env build-image
 
-      - name: Start MWAA Local Runner
+      - name: Start MWAA Local Runner and put in background (not using docker -d)
         run: |
           cd aws-mwaa-local-runner
-          docker-compose -f docker/docker-compose-local.yml up -d
+          ./mwaa-local-env start &
 
       - name: Wait for Airflow webserver to be ready
         run: |
           for i in {1..30}; do
-            if docker logs mwaa-local-runner_airflow_1 | grep -q 'Listening at: http://0.0.0.0:8080'; then
+            if docker logs aws-mwaa-local-runner-2_10-local-runner-1 | grep -q 'Listening at: http://0.0.0.0:8080'; then
               echo "Airflow is ready"
               break
             else
@@ -77,14 +72,9 @@ jobs:
 
       - name: List DAGs
         run: |
-          docker exec mwaa-local-runner_airflow_1 airflow dags list
+          docker exec aws-mwaa-local-runner-2_10-local-runner-1 airflow dags list
 
       - name: Test DAG
         if: ${{ inputs.dag_id != '' && inputs.execution_date != '' }}
         run: |
-          docker exec mwaa-local-runner_airflow_1 airflow dags test ${{ inputs.dag_id }} ${{ inputs.execution_date }}
-
-      - name: Stop MWAA Local Runner
-        run: |
-          cd aws-mwaa-local-runner
-          docker-compose -f docker/docker-compose-local.yml down
+          docker exec docker-local-runner-1 airflow dags test ${{ inputs.dag_id }} ${{ inputs.execution_date }}

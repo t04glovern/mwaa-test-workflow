@@ -10,3 +10,5 @@ jobs:
     uses: t04glovern/mwaa-test-workflow/.github/workflows/test-dags.yml@main
     with:
       dags_path: './dags'
+      dag_id: 'dag_with_taskflow_api'
+      execution_date: '2024-10-09'
