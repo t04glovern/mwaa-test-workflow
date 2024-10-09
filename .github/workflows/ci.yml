@@ -1,0 +1,12 @@
+name: CI for DAGs
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test-dags:
+    uses: t04glovern/mwaa-test-workflow/.github/workflows/test-dags.yml@main
+    with:
+      dags_path: './dags'

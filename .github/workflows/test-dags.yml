@@ -1,0 +1,90 @@
+name: Test DAGs on MWAA Local Runner
+
+on:
+  workflow_call:
+    inputs:
+      dags_path:
+        description: 'Path to the DAGs directory'
+        required: true
+        type: string
+        default: './dags'
+      requirements_path:
+        description: 'Path to requirements.txt file'
+        required: false
+        type: string
+      plugins_path:
+        description: 'Path to the plugins directory'
+        required: false
+        type: string
+      dag_id:
+        description: 'DAG ID to test'
+        required: false
+        type: string
+      execution_date:
+        description: 'Execution date for testing the DAG (YYYY-MM-DD)'
+        required: false
+        type: string
+
+jobs:
+  test-dags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Clone MWAA Local Runner
+        run: git clone https://github.com/aws/aws-mwaa-local-runner.git
+
+      - name: Copy DAGs
+        run: |
+          cp -r ${{ inputs.dags_path }}/* aws-mwaa-local-runner/dags/
+
+      - name: Copy requirements.txt
+        if: ${{ inputs.requirements_path != '' }}
+        run: |
+          cp ${{ inputs.requirements_path }} aws-mwaa-local-runner/requirements/requirements.txt
+
+      - name: Copy plugins
+        if: ${{ inputs.plugins_path != '' }}
+        run: |
+          cp -r ${{ inputs.plugins_path }}/* aws-mwaa-local-runner/plugins/
+
+      - name: Build MWAA Local Runner image
+        run: |
+          cd aws-mwaa-local-runner
+          ./mwaa-local-env build-image
+
+      - name: Start MWAA Local Runner
+        run: |
+          cd aws-mwaa-local-runner
+          docker-compose -f docker/docker-compose-local.yml up -d
+
+      - name: Wait for Airflow webserver to be ready
+        run: |
+          for i in {1..30}; do
+            if docker logs mwaa-local-runner_airflow_1 | grep -q 'Listening at: http://0.0.0.0:8080'; then
+              echo "Airflow is ready"
+              break
+            else
+              echo "Waiting for Airflow to be ready..."
+              sleep 10
+            fi
+          done
+
+      - name: List DAGs
+        run: |
+          docker exec mwaa-local-runner_airflow_1 airflow dags list
+
+      - name: Test DAG
+        if: ${{ inputs.dag_id != '' && inputs.execution_date != '' }}
+        run: |
+          docker exec mwaa-local-runner_airflow_1 airflow dags test ${{ inputs.dag_id }} ${{ inputs.execution_date }}
+
+      - name: Stop MWAA Local Runner
+        run: |
+          cd aws-mwaa-local-runner
+          docker-compose -f docker/docker-compose-local.yml down
