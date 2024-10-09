@@ -58,7 +58,7 @@ jobs:
           cd aws-mwaa-local-runner
           ./mwaa-local-env build-image
 
-      - name: Start MWAA Local Runner and put in background (not using docker -d)
+      - name: Start MWAA Local Runner
         run: |
           cd aws-mwaa-local-runner
           ./mwaa-local-env start &
