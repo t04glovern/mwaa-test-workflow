@@ -109,7 +109,7 @@ runs:
 
     - name: Get container name
       run: |
-        CONTAINER_NAME=$(docker ps --format '{{.Names}}' | grep local-runner)
+        CONTAINER_NAME=$(docker ps -a --format '{{.Names}}' | grep _local-runner_)
         echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
       shell: bash
 
