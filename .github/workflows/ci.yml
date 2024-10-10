@@ -7,9 +7,12 @@ on:
 
 jobs:
   test-dags:
-    uses: t04glovern/mwaa-test-workflow@main
-    with:
-      dags_path: dags
-      start_script_path: startup.sh
-      dag_id: dag_with_taskflow_api
-      execution_date: 2024-10-09
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test DAGs on MWAA Local Runner
+        uses: t04glovern/mwaa-test-workflow@main
+        with:
+          dags_path: dags
+          startup_script_path: startup.sh
+          dag_id: dag_with_taskflow_api
+          execution_date: 2024-10-09
