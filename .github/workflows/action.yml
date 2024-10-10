@@ -113,7 +113,7 @@ jobs:
         run: |
           sed -i 's|^\(load_examples *= *\).*|\1False|' aws-mwaa-local-runner/docker/config/airflow.cfg
           sed -i 's|^\(dags_are_paused_at_creation *= *\).*|\1False|' aws-mwaa-local-runner/docker/config/airflow.cfg
-          sed -i 's|^\(auth_backend *= *\).*|\1airflow.providers.fab.auth_manager.api.auth.backend.basic_auth|' aws-mwaa-local-runner/docker/config/airflow.cfg
+          sed -i 's|^\(auth_backends *= *\).*|\1airflow.providers.fab.auth_manager.api.auth.backend.basic_auth|' aws-mwaa-local-runner/docker/config/airflow.cfg
         shell: bash
 
       - name: Build MWAA Local Runner image
