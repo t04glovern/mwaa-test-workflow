@@ -43,18 +43,16 @@ runs:
   using: 'composite'
   steps:
     - uses: actions/checkout@v4
+      with:
+        repository: aws/aws-mwaa-local-runner
+        ref: v2.10.1
+        path: aws-mwaa-local-runner
 
     - name: Install Docker Compose
       run: |
         sudo apt-get update
         sudo apt-get install -y docker-compose
       shell: bash
-
-    - uses: actions/checkout@v4
-      with:
-        repository: aws/aws-mwaa-local-runner
-        ref: v2.10.1
-        path: aws-mwaa-local-runner
 
     - name: Copy DAGs
       run: |
