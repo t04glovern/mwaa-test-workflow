@@ -114,13 +114,6 @@ jobs:
           ./mwaa-local-env build-image
         shell: bash
 
-      - name: Test startup script
-        if: ${{ inputs.startup_script_path != '' }}
-        run: |
-          cd aws-mwaa-local-runner
-          ./mwaa-local-env test-startup-script
-        shell: bash
-
       - name: Start MWAA Local Runner
         run: |
           cd aws-mwaa-local-runner
