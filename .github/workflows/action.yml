@@ -110,8 +110,8 @@ jobs:
 
       - name: Modify docker/config/airflow.cfg
         run: |
-          sed -i 's|^\(load_examples *= *\).*|\1False|' "$config_file"
-          sed -i 's|^\(dags_are_paused_at_creation *= *\).*|\1False|' "$config_file"
+          sed -i 's|^\(load_examples *= *\).*|\1False|' aws-mwaa-local-runner/docker/config/airflow.cfg
+          sed -i 's|^\(dags_are_paused_at_creation *= *\).*|\1False|' aws-mwaa-local-runner/docker/config/airflow.cfg
         shell: bash
 
       - name: Build MWAA Local Runner image
