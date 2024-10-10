@@ -113,6 +113,7 @@ jobs:
         run: |
           sed -i 's|^\(load_examples *= *\).*|\1False|' aws-mwaa-local-runner/docker/config/airflow.cfg
           sed -i 's|^\(dags_are_paused_at_creation *= *\).*|\1False|' aws-mwaa-local-runner/docker/config/airflow.cfg
+          sed -i 's|^\(auth_backend *= *\).*|\1airflow.providers.fab.auth_manager.api.auth.backend.basic_auth|' aws-mwaa-local-runner/docker/config/airflow.cfg
         shell: bash
 
       - name: Build MWAA Local Runner image
@@ -155,13 +156,14 @@ jobs:
           # Poll API for DAG run status
           for i in {1..10}; do
             response=$(curl -s -X GET "http://localhost:8080/api/v1/dags/${{ inputs.dag_id }}/dagRuns" \
-                        -H "Content-Type: application/json")
+                        -H "Content-Type: application/json" \
+                        -H "Authorization: Basic $(echo -n 'admin:test' | base64)")
             
-            # Extract the state from the first DAG run
-            state=$(echo $response | jq -r '.dag_runs[0].state')
-
             # Print $response for debugging
             echo $response
+
+            # Extract the state from the first DAG run
+            state=$(echo $response | jq -r '.dag_runs[0].state')
             
             if [ "$state" == "success" ]; then
               echo "DAG run succeeded."
