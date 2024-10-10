@@ -120,6 +120,10 @@ jobs:
           ./mwaa-local-env start &
         shell: bash
 
+      - name: Sleep for 30 seconds
+        run: sleep 30
+        shell: bash
+
       - name: Get container name
         run: |
           CONTAINER_NAME=$(docker ps -a --format '{{.Names}}' | grep _local-runner_)
