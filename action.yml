@@ -45,6 +45,7 @@ runs:
     - name: Clone MWAA Local Runner
       run: |
         git clone https://github.com/aws/aws-mwaa-local-runner.git
+        cd aws-mwaa-local-runner
         git checkout v2.10.1
       shell: bash
 
