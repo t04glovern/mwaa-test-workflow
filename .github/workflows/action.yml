@@ -93,6 +93,7 @@ jobs:
         shell: bash
 
       - name: Configure AWS credentials
+        id: aws-credentials
         if: ${{ inputs.aws_role_to_assume != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -103,9 +104,9 @@ jobs:
       - name: Update .env.localrunner with AWS credentials
         if: ${{ inputs.aws_role_to_assume != '' }}
         run: |
-          echo "AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
-          echo "AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
-          echo "AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
+          echo "AWS_ACCESS_KEY_ID=${{ steps.aws-credentials.outputs.aws-access-key-id }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
+          echo "AWS_SECRET_ACCESS_KEY=${{ steps.aws-credentials.outputs.aws-secret-access-key }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
+          echo "AWS_SESSION_TOKEN=${{ steps.aws-credentials.outputs.aws-session-token }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
         shell: bash
 
       - name: Modify docker/config/airflow.cfg
@@ -158,6 +159,9 @@ jobs:
             
             # Extract the state from the first DAG run
             state=$(echo $response | jq -r '.dag_runs[0].state')
+
+            # Print $response for debugging
+            echo $response
             
             if [ "$state" == "success" ]; then
               echo "DAG run succeeded."
