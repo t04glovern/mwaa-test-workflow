@@ -51,8 +51,8 @@ runs:
 
     - name: Create /bin/docker-compose redirect
       run: |
-        echo 'docker compose "$@"' >> /bin/docker-compose
-        chmod +x /bin/docker-compose
+        sudo echo 'docker compose "$@"' >> /bin/docker-compose
+        sudo chmod +x /bin/docker-compose
       shell: bash
 
     - name: Copy DAGs
