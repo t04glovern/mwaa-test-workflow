@@ -108,6 +108,12 @@ jobs:
           echo "AWS_SESSION_TOKEN=${{ env.AWS_SESSION_TOKEN }}" >> aws-mwaa-local-runner/docker/config/.env.localrunner
         shell: bash
 
+      - name: Modify docker/config/airflow.cfg
+        run: |
+          sed -i 's|^\(load_examples *= *\).*|\1False|' "$config_file"
+          sed -i 's|^\(dags_are_paused_at_creation *= *\).*|\1False|' "$config_file"
+        shell: bash
+
       - name: Build MWAA Local Runner image
         run: |
           cd aws-mwaa-local-runner
@@ -143,18 +149,25 @@ jobs:
           done
         shell: bash
 
-      - name: Migrate DB
+      - name: Check DAG Run Status
         run: |
-          docker exec $CONTAINER_NAME airflow db migrate
-        shell: bash
-
-      - name: List DAGs
-        run: |
-          docker exec $CONTAINER_NAME airflow dags list
-        shell: bash
-
-      - name: Test DAG
-        if: ${{ inputs.dag_id != '' && inputs.execution_date != '' }}
-        run: |
-          docker exec $CONTAINER_NAME airflow dags test "${{ inputs.dag_id }}" "${{ inputs.execution_date }}"
+          # Poll API for DAG run status
+          for i in {1..10}; do
+            response=$(curl -s -X GET "http://localhost:8080/api/v1/dags/${{ inputs.dag_id }}/dagRuns" \
+                        -H "Content-Type: application/json")
+            
+            # Extract the state from the first DAG run
+            state=$(echo $response | jq -r '.dag_runs[0].state')
+            
+            if [ "$state" == "success" ]; then
+              echo "DAG run succeeded."
+              break
+            elif [ "$i" -eq 10 ]; then
+              echo "DAG run did not succeed after retries."
+              exit 1
+            else
+              echo "Waiting for DAG to reach 'success' status. Current state: $state"
+              sleep 10
+            fi
+          done
         shell: bash
