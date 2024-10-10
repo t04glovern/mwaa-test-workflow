@@ -49,10 +49,10 @@ runs:
         git checkout v2.10.1
       shell: bash
 
-    - name: Create /bin/docker-compose redirect
+    - name: Install docker-compose
       run: |
-        sudo echo 'docker compose "$@"' >> /bin/docker-compose
-        sudo chmod +x /bin/docker-compose
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
       shell: bash
 
     - name: Copy DAGs
@@ -108,7 +108,7 @@ runs:
 
     - name: Get container name
       run: |
-        CONTAINER_NAME=$(docker ps -a --format '{{.Names}}' | grep -local-runner-)
+        CONTAINER_NAME=$(docker ps -a --format '{{.Names}}' | grep _local-runner_)
         echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
       shell: bash
 
